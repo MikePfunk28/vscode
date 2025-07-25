@@ -8,6 +8,8 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { IAIService } from '../../../services/ai/common/aiService.js';
 import { ICodeContext } from '../../../services/ai/common/aiTypes.js';
+import { IAdvancedAIService } from '../../../services/ai/common/advancedAIService.js';
+import { ContextCategory, IInterleavedContext, ITextSegment, ICodeSegment } from '../../../services/ai/common/advancedAITypes.js';
 import { AIChatPanel } from './aiChatPanel.js';
 import { AI_CHAT_PANEL_ID } from './ai.contribution.js';
 import { AIChatPanelStateService } from './aiChatPanelState.js';
@@ -30,6 +32,7 @@ export class AIChatController extends Disposable {
 	constructor(
 		@IViewsService private readonly viewsService: IViewsService,
 		@IAIService private readonly aiService: IAIService,
+		@IAdvancedAIService private readonly advancedAIService: IAdvancedAIService,
 		@IEditorService private readonly editorService: IEditorService,
 		@IWorkspaceContextService private readonly workspaceContextService: IWorkspaceContextService,
 		@IStorageService storageService: IStorageService,
@@ -91,18 +94,43 @@ export class AIChatController extends Disposable {
 			// Get current code context
 			const extractedContext = await this._contextExtractor.extractCurrentContext();
 
-			// Format context for AI
-			let enhancedMessage = message;
-			if (extractedContext) {
-				const contextString = this._contextExtractor.formatContextForAI(extractedContext);
-				enhancedMessage = `${contextString}\n\n## User Question\n${message}`;
+			// Build interleaved context for advanced AI processing
+			const interleavedContext = await this._buildInterleavedContext(message, extractedContext);
+
+			// Use advanced AI service with all features enabled
+			const response = await this.advancedAIService.processAdvancedQuery(message, {
+				useChainOfThought: true,
+				useSequentialThinking: message.toLowerCase().includes('problem') || message.toLowerCase().includes('solve'),
+				useRAG: true,
+				ragCategories: [
+					ContextCategory.CODE_CONTEXT,
+					ContextCategory.DOCUMENTATION,
+					ContextCategory.EXAMPLES,
+					ContextCategory.BEST_PRACTICES
+				],
+				useAttention: true,
+				useSemanticSearch: true
+			}, interleavedContext);
+
+			// Format response with reasoning if available
+			let formattedResponse = response.content;
+
+			if (response.reasoning && response.reasoning.steps.length > 0) {
+				formattedResponse += '\n\n**Reasoning:**\n';
+				response.reasoning.steps.forEach((step, index) => {
+					formattedResponse += `${index + 1}. ${step.thought}\n   *${step.reasoning}*\n`;
+				});
 			}
 
-			// Send message to AI service
-			const response = await this.aiService.sendChatMessage(enhancedMessage, extractedContext);
+			if (response.sources && response.sources.length > 0) {
+				formattedResponse += '\n\n**Sources:**\n';
+				response.sources.forEach(source => {
+					formattedResponse += `- ${source.title} (${source.type})\n`;
+				});
+			}
 
 			// Display response in chat panel
-			this._chatPanel.addAssistantMessage(response.content);
+			this._chatPanel.addAssistantMessage(formattedResponse);
 		} catch (error) {
 			console.error('Error sending chat message:', error);
 			this._chatPanel.addErrorMessage(error instanceof Error ? error.message : String(error));
@@ -177,5 +205,132 @@ export class AIChatController extends Disposable {
 		if (this._chatPanel) {
 			this._chatPanel.clearMessages();
 		}
+	}
+
+	private async _buildInterleavedContext(message: string, extractedContext?: any): Promise<IInterleavedContext> {
+		const textSegments: ITextSegment[] = [];
+		const codeSegments: ICodeSegment[] = [];
+		const sequenceOrder: number[] = [];
+		const attentionWeights: number[] = [];
+
+		// Add user message as text segment
+		textSegments.push({
+			id: 'user_message',
+			content: message,
+			type: 'instruction',
+			position: 0,
+			relevanceScore: 1.0
+		});
+		sequenceOrder.push(0);
+		attentionWeights.push(1.0);
+
+		if (extractedContext) {
+			// Add workspace context
+			if (extractedContext.workspaceInfo?.rootPath) {
+				textSegments.push({
+					id: 'workspace_context',
+					content: `Workspace: ${extractedContext.workspaceInfo.rootPath}`,
+					type: 'documentation',
+					position: 1,
+					relevanceScore: 0.6
+				});
+				sequenceOrder.push(1);
+				attentionWeights.push(0.6);
+			}
+
+			// Add active file as code segment
+			if (extractedContext.activeFile && extractedContext.fileContent) {
+				const embedding = await this._createMockEmbedding(extractedContext.fileContent);
+				codeSegments.push({
+					id: 'active_file',
+					content: extractedContext.fileContent,
+					language: extractedContext.workspaceInfo?.language || 'typescript',
+					type: 'function',
+					position: 2,
+					dependencies: [],
+					semanticEmbedding: embedding
+				});
+				sequenceOrder.push(2);
+				attentionWeights.push(0.9);
+			}
+
+			// Add selected text as high-priority code segment
+			if (extractedContext.selectedText) {
+				const embedding = await this._createMockEmbedding(extractedContext.selectedText);
+				codeSegments.push({
+					id: 'selected_code',
+					content: extractedContext.selectedText,
+					language: extractedContext.workspaceInfo?.language || 'typescript',
+					type: 'expression',
+					position: 3,
+					dependencies: [],
+					semanticEmbedding: embedding
+				});
+				sequenceOrder.push(3);
+				attentionWeights.push(1.0);
+			}
+
+			// Add surrounding code context
+			if (extractedContext.surroundingCode && extractedContext.surroundingCode !== extractedContext.selectedText) {
+				const embedding = await this._createMockEmbedding(extractedContext.surroundingCode);
+				codeSegments.push({
+					id: 'surrounding_code',
+					content: extractedContext.surroundingCode,
+					language: extractedContext.workspaceInfo?.language || 'typescript',
+					type: 'function',
+					position: 4,
+					dependencies: [],
+					semanticEmbedding: embedding
+				});
+				sequenceOrder.push(4);
+				attentionWeights.push(0.7);
+			}
+
+			// Add project structure as documentation
+			if (extractedContext.projectStructure && extractedContext.projectStructure.length > 0) {
+				textSegments.push({
+					id: 'project_structure',
+					content: `Project Structure:\n${extractedContext.projectStructure.join('\n')}`,
+					type: 'documentation',
+					position: 5,
+					relevanceScore: 0.5
+				});
+				sequenceOrder.push(5);
+				attentionWeights.push(0.5);
+			}
+		}
+
+		return {
+			textSegments,
+			codeSegments,
+			visualSegments: [], // Not implemented yet
+			sequenceOrder,
+			attentionWeights
+		};
+	}
+
+	private async _createMockEmbedding(text: string): Promise<number[]> {
+		// Create a simple mock embedding based on text characteristics
+		// In a real implementation, this would call an embedding model
+		const dimensions = 1536; // Standard OpenAI embedding size
+		const embedding = new Array(dimensions);
+
+		// Simple hash-based embedding for consistency
+		let hash = 0;
+		for (let i = 0; i < text.length; i++) {
+			const char = text.charCodeAt(i);
+			hash = ((hash << 5) - hash) + char;
+			hash = hash & hash; // Convert to 32-bit integer
+		}
+
+		// Generate deterministic values based on hash
+		for (let i = 0; i < dimensions; i++) {
+			const seed = hash + i;
+			embedding[i] = (Math.sin(seed) + Math.cos(seed * 2)) / 2;
+		}
+
+		// Normalize the embedding
+		const norm = Math.sqrt(embedding.reduce((sum, val) => sum + val * val, 0));
+		return embedding.map(val => val / norm);
 	}
 }

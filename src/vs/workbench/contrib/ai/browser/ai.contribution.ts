@@ -14,6 +14,9 @@ import './aiChatCommands.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
+import { IAdvancedAIService } from '../../../services/ai/common/advancedAIService.js';
+import { AdvancedAIServiceManager } from '../../../services/ai/common/advancedAIServiceManager.js';
+import { registerSingleton, InstantiationType } from '../../../../platform/instantiation/common/extensions.js';
 
 
 // Register AI chat icon
@@ -51,6 +54,9 @@ Registry.as<IViewsRegistry>(ViewContainerExtensions.ViewsRegistry).registerViews
 		order: 2,
 	}
 }], VIEW_CONTAINER);
+
+// Register Advanced AI Service
+registerSingleton(IAdvancedAIService, AdvancedAIServiceManager, InstantiationType.Delayed);
 
 // Register AI Chat Controller as a workbench contribution
 registerWorkbenchContribution2(AIChatController.ID, AIChatController, WorkbenchPhase.BlockRestore);
