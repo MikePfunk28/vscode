@@ -1,0 +1,514 @@
+{
+  "name": "mike-ai-ide",
+  "displayName": "Mike AI IDE - Comprehensive AI Assistant",
+  "description": "Darwin Godel Machine, Apple Context Windows, RAG Pipeline, Multi-Model AI Integration",
+  "version": "1.0.0",
+  "publisher": "mike-ai",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "AI",
+    "Machine Learning",
+    "Productivity Tools",
+    "Other"
+  ],
+  "keywords": [
+    "ai",
+    "completion",
+    "assistant",
+    "darwin-godel-machine",
+    "apple-context-window",
+    "rag",
+    "multi-model",
+    "ollama",
+    "anthropic",
+    "openai"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "mike-ai.openChat",
+        "title": "Open AI Chat",
+        "category": "Mike AI",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "mike-ai.spawnAgent",
+        "title": "Spawn AI Agent",
+        "category": "Mike AI",
+        "icon": "$(robot)"
+      },
+      {
+        "command": "mike-ai.toggleDGM",
+        "title": "Toggle Darwin Godel Machine",
+        "category": "Mike AI",
+        "icon": "$(pulse)"
+      },
+      {
+        "command": "mike-ai.openContextViewer",
+        "title": "View Context Windows",
+        "category": "Mike AI",
+        "icon": "$(window)"
+      },
+      {
+        "command": "mike-ai.searchRAG",
+        "title": "Search Knowledge Base",
+        "category": "Mike AI",
+        "icon": "$(search)"
+      },
+      {
+        "command": "mike-ai.configureModels",
+        "title": "Configure AI Models",
+        "category": "Mike AI",
+        "icon": "$(settings-gear)"
+      },
+      {
+        "command": "mike-ai.showPerformance",
+        "title": "Show Performance Metrics",
+        "category": "Mike AI",
+        "icon": "$(graph-line)"
+      },
+      {
+        "command": "mike-ai.explainCode",
+        "title": "Explain Selected Code",
+        "category": "Mike AI",
+        "icon": "$(info)"
+      },
+      {
+        "command": "mike-ai.generateTests",
+        "title": "Generate Tests",
+        "category": "Mike AI",
+        "icon": "$(beaker)"
+      },
+      {
+        "command": "mike-ai.refactorCode",
+        "title": "AI Refactor",
+        "category": "Mike AI",
+        "icon": "$(wrench)"
+      },
+      {
+        "command": "mike-ai.optimizeCode",
+        "title": "Optimize Performance",
+        "category": "Mike AI",
+        "icon": "$(zap)"
+      },
+      {
+        "command": "mike-ai.reviewCode",
+        "title": "AI Code Review",
+        "category": "Mike AI",
+        "icon": "$(checklist)"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "mike-ai.openChat"
+        },
+        {
+          "command": "mike-ai.spawnAgent"
+        },
+        {
+          "command": "mike-ai.toggleDGM"
+        },
+        {
+          "command": "mike-ai.openContextViewer"
+        },
+        {
+          "command": "mike-ai.searchRAG"
+        },
+        {
+          "command": "mike-ai.configureModels"
+        },
+        {
+          "command": "mike-ai.showPerformance"
+        },
+        {
+          "command": "mike-ai.explainCode",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "mike-ai.generateTests",
+          "when": "editorLangId"
+        },
+        {
+          "command": "mike-ai.refactorCode",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "mike-ai.optimizeCode",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "mike-ai.reviewCode",
+          "when": "editorLangId"
+        }
+      ],
+      "editor/context": [
+        {
+          "submenu": "mike-ai.submenu",
+          "group": "ai"
+        }
+      ],
+      "mike-ai.submenu": [
+        {
+          "command": "mike-ai.explainCode",
+          "when": "editorHasSelection",
+          "group": "understand"
+        },
+        {
+          "command": "mike-ai.refactorCode",
+          "when": "editorHasSelection",
+          "group": "improve"
+        },
+        {
+          "command": "mike-ai.optimizeCode",
+          "when": "editorHasSelection",
+          "group": "improve"
+        },
+        {
+          "command": "mike-ai.generateTests",
+          "when": "editorLangId",
+          "group": "generate"
+        },
+        {
+          "command": "mike-ai.reviewCode",
+          "when": "editorLangId",
+          "group": "validate"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "mike-ai.openChat",
+          "when": "view == mike-ai.chatView",
+          "group": "navigation"
+        },
+        {
+          "command": "mike-ai.spawnAgent",
+          "when": "view == mike-ai.agentsView",
+          "group": "navigation"
+        }
+      ]
+    },
+    "submenus": [
+      {
+        "id": "mike-ai.submenu",
+        "label": "Mike AI",
+        "icon": "$(sparkle)"
+      }
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "mike-ai.chatView",
+          "name": "AI Chat",
+          "when": "mike-ai.enabled",
+          "contextualTitle": "Mike AI Chat"
+        },
+        {
+          "id": "mike-ai.agentsView",
+          "name": "Active Agents",
+          "when": "mike-ai.enabled",
+          "contextualTitle": "AI Agents"
+        },
+        {
+          "id": "mike-ai.contextView",
+          "name": "Context Windows",
+          "when": "mike-ai.enabled",
+          "contextualTitle": "Context Windows"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "mike-ai.chatView",
+        "contents": "Welcome to Mike AI Chat!\n[Start Conversation](command:mike-ai.openChat)\n[Configure Models](command:mike-ai.configureModels)"
+      },
+      {
+        "view": "mike-ai.agentsView",
+        "contents": "No active AI agents.\n[Spawn Agent](command:mike-ai.spawnAgent)"
+      }
+    ],
+    "configuration": {
+      "title": "Mike AI IDE",
+      "properties": {
+        "mike-ai.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Mike AI IDE features"
+        },
+        "mike-ai.primaryModel": {
+          "type": "string",
+          "default": "qwen3-coder",
+          "description": "Primary AI model for code generation",
+          "enum": [
+            "qwen3-coder",
+            "gpt-4",
+            "claude-3",
+            "local-model"
+          ],
+          "enumDescriptions": [
+            "Qwen 3 Coder (LMStudio)",
+            "OpenAI GPT-4",
+            "Anthropic Claude 3",
+            "Custom Local Model"
+          ]
+        },
+        "mike-ai.helperModel": {
+          "type": "string",
+          "default": "mikepfunk28/deepseekq3_agent:latest",
+          "description": "Helper model for reasoning and chain of thought (Ollama)"
+        },
+        "mike-ai.useHelper": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use helper model for enhanced reasoning"
+        },
+        "mike-ai.temperature": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0.1,
+          "maximum": 2,
+          "description": "AI model temperature (creativity level)"
+        },
+        "mike-ai.maxTokens": {
+          "type": "number",
+          "default": 1000,
+          "minimum": 50,
+          "maximum": 4000,
+          "description": "Maximum tokens per AI response"
+        },
+        "mike-ai.darwinGodelMachine.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Darwin Godel Machine self-learning"
+        },
+        "mike-ai.darwinGodelMachine.learningRate": {
+          "type": "number",
+          "default": 0.3,
+          "minimum": 0.1,
+          "maximum": 1,
+          "description": "Learning rate for Darwin Godel Machine"
+        },
+        "mike-ai.contextWindow.maxWindows": {
+          "type": "number",
+          "default": 8,
+          "minimum": 3,
+          "maximum": 20,
+          "description": "Maximum number of context windows"
+        },
+        "mike-ai.contextWindow.interleaving": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Apple-style context interleaving"
+        },
+        "mike-ai.rag.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable RAG knowledge base search"
+        },
+        "mike-ai.rag.indexOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically index files when saved"
+        },
+        "mike-ai.completion.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable AI code completion"
+        },
+        "mike-ai.completion.streaming": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable streaming completions"
+        },
+        "mike-ai.apiKeys.openrouter": {
+          "type": "string",
+          "default": "",
+          "description": "OpenRouter API Key"
+        },
+        "mike-ai.apiKeys.openai": {
+          "type": "string",
+          "default": "",
+          "description": "OpenAI API Key"
+        },
+        "mike-ai.apiKeys.anthropic": {
+          "type": "string",
+          "default": "",
+          "description": "Anthropic API Key"
+        },
+        "mike-ai.endpoints.ollama": {
+          "type": "string",
+          "default": "http://localhost:11434",
+          "description": "Ollama endpoint URL"
+        },
+        "mike-ai.endpoints.lmstudio": {
+          "type": "string",
+          "default": "http://192.168.1.160:1234",
+          "description": "LM Studio endpoint URL"
+        },
+        "mike-ai.claudeFlow.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Claude Flow MCP integration"
+        },
+        "mike-ai.logging.level": {
+          "type": "string",
+          "default": "info",
+          "enum": [
+            "debug",
+            "info",
+            "warn",
+            "error"
+          ],
+          "description": "Logging level"
+        },
+        "mike-ai.memory.provider": {
+          "type": "string",
+          "default": "local",
+          "enum": [
+            "local",
+            "airtable",
+            "mongodb",
+            "pinecone",
+            "convex"
+          ],
+          "enumDescriptions": [
+            "Local SQLite storage",
+            "AirTable cloud storage",
+            "MongoDB database",
+            "Pinecone vector database",
+            "Convex backend"
+          ],
+          "description": "Memory/knowledge base provider"
+        }
+      }
+    },
+    "keybindings": [
+      {
+        "command": "mike-ai.openChat",
+        "key": "ctrl+shift+c",
+        "mac": "cmd+shift+c",
+        "when": "!terminalFocus"
+      },
+      {
+        "command": "mike-ai.spawnAgent",
+        "key": "ctrl+shift+a",
+        "mac": "cmd+shift+a"
+      },
+      {
+        "command": "mike-ai.explainCode",
+        "key": "ctrl+shift+e",
+        "mac": "cmd+shift+e",
+        "when": "editorHasSelection"
+      },
+      {
+        "command": "mike-ai.refactorCode",
+        "key": "ctrl+shift+r",
+        "mac": "cmd+shift+r",
+        "when": "editorHasSelection"
+      }
+    ],
+    "languages": [
+      {
+        "id": "mike-ai-chat",
+        "aliases": [
+          "Mike AI Chat"
+        ],
+        "extensions": [
+          ".aichat"
+        ]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "mike-ai-chat",
+        "scopeName": "source.mike-ai-chat",
+        "path": "./syntaxes/mike-ai-chat.tmGrammar.json"
+      }
+    ],
+    "colors": [
+      {
+        "id": "mike-ai.chat.userMessage",
+        "description": "Color for user messages in AI chat",
+        "defaults": {
+          "dark": "#569cd6",
+          "light": "#0000ff",
+          "highContrast": "#ffffff"
+        }
+      },
+      {
+        "id": "mike-ai.chat.assistantMessage",
+        "description": "Color for AI assistant messages",
+        "defaults": {
+          "dark": "#4ec9b0",
+          "light": "#008080",
+          "highContrast": "#00ff00"
+        }
+      },
+      {
+        "id": "mike-ai.dgm.active",
+        "description": "Color indicating Darwin Godel Machine is active",
+        "defaults": {
+          "dark": "#ffb74d",
+          "light": "#ff8f00",
+          "highContrast": "#ffff00"
+        }
+      }
+    ],
+    "icons": {
+      "mike-ai-logo": {
+        "description": "Mike AI IDE logo",
+        "default": {
+          "fontPath": "./media/mike-ai-icons.woff",
+          "fontCharacter": "\\E001"
+        }
+      },
+      "dgm-active": {
+        "description": "Darwin Godel Machine active indicator",
+        "default": {
+          "fontPath": "./media/mike-ai-icons.woff",
+          "fontCharacter": "\\E002"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "devDependencies": {
+    "@types/node": "20.x",
+    "@types/vscode": "^1.95.0",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "ws": "^8.18.0"
+  },
+  "extensionDependencies": [],
+  "extensionPack": [],
+  "badges": [
+    {
+      "url": "https://img.shields.io/badge/AI-Powered-blue",
+      "href": "https://github.com/mike-ai/mike-ai-ide",
+      "description": "AI Powered Development Environment"
+    }
+  ],
+  "sponsor": {
+    "url": "https://github.com/sponsors/mike-ai"
+  },
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
