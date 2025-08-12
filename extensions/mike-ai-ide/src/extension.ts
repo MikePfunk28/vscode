@@ -1,9 +1,12 @@
 import * as vscode from 'vscode';
 import { AIModelManager } from './services/aiModelManager';
+import { AdvancedModelManager } from './services/advancedModelManager';
 import { DarwinGodelMachine } from './services/darwinGodelMachine';
 import { AppleContextWindow } from './services/appleContextWindow';
 import { RAGPipeline } from './services/ragPipeline';
 import { AgentCoordinator } from './services/agentCoordinator';
+import { StructuredAgentSystem } from './agents/structuredAgentSystem';
+import { AutoGenIntegration } from './agents/autoGenIntegration';
 import { ChatProvider } from './providers/chatProvider';
 import { CompletionProvider } from './providers/completionProvider';
 import { CodeLensProvider } from './providers/codeLensProvider';
@@ -30,10 +33,13 @@ import { Logger } from './utils/logger';
 let extensionContext: vscode.ExtensionContext;
 let logger: Logger;
 let aiModelManager: AIModelManager;
+let advancedModelManager: AdvancedModelManager;
 let darwinGodelMachine: DarwinGodelMachine;
 let appleContextWindow: AppleContextWindow;
 let ragPipeline: RAGPipeline;
 let agentCoordinator: AgentCoordinator;
+let structuredAgentSystem: StructuredAgentSystem;
+let autoGenIntegration: AutoGenIntegration;
 let claudeFlowIntegration: ClaudeFlowIntegration;
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -97,9 +103,13 @@ export function deactivate() {
 async function initializeServices() {
     logger.info('🔧 Initializing AI services...');
     
-    // Initialize AI Model Manager
+    // Initialize AI Model Manager (legacy)
     aiModelManager = new AIModelManager(extensionContext, logger);
     await aiModelManager.initialize();
+    
+    // Initialize Advanced Model Manager (new - supports GGUF, llama.cpp, etc.)
+    advancedModelManager = new AdvancedModelManager(extensionContext, logger);
+    await advancedModelManager.initialize();
     
     // Initialize Darwin Godel Machine
     darwinGodelMachine = new DarwinGodelMachine(extensionContext, logger);
@@ -113,9 +123,15 @@ async function initializeServices() {
     ragPipeline = new RAGPipeline(extensionContext, logger);
     await ragPipeline.initialize();
     
-    // Initialize Agent Coordinator
+    // Initialize Agent Coordinator (legacy)
     agentCoordinator = new AgentCoordinator(extensionContext, logger);
     await agentCoordinator.initialize();
+    
+    // Initialize Structured Agent System (new)
+    structuredAgentSystem = new StructuredAgentSystem(extensionContext, logger, advancedModelManager);
+    
+    // Initialize AutoGen Integration
+    autoGenIntegration = new AutoGenIntegration(extensionContext, logger, advancedModelManager, structuredAgentSystem);
     
     // Initialize Claude Flow Integration
     claudeFlowIntegration = new ClaudeFlowIntegration(extensionContext, logger);
