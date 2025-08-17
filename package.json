@@ -1,9 +1,9 @@
 {
-  "name": "code-oss-dev",
+  "name": "mikecode",
   "version": "1.104.0",
   "distro": "69861287f4af04d36b926eb311cccb4b5680a018",
   "author": {
-    "name": "Microsoft Corporation"
+    "name": "Mike Pfundt"
   },
   "license": "MIT",
   "main": "./out/main.js",
@@ -97,6 +97,7 @@
     "@xterm/addon-webgl": "^0.19.0-beta.112",
     "@xterm/headless": "^5.6.0-beta.112",
     "@xterm/xterm": "^5.6.0-beta.112",
+    "esbuild": "^0.25.9",
     "http-proxy-agent": "^7.0.0",
     "https-proxy-agent": "^7.0.2",
     "jschardet": "3.1.4",
@@ -229,10 +230,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/microsoft/vscode.git"
+    "url": "https://github.com/mikeaiide/mikecode.git"
   },
   "bugs": {
-    "url": "https://github.com/microsoft/vscode/issues"
+    "url": "https://github.com/mikeaiide/mikecode/issues"
   },
   "optionalDependencies": {
     "windows-foreground-love": "0.5.0"
