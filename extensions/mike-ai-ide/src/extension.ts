@@ -8,6 +8,7 @@ import { AgentCoordinator } from './services/agentCoordinator';
 import { StructuredAgentSystem } from './agents/structuredAgentSystem';
 import { AutoGenIntegration } from './agents/autoGenIntegration';
 import { ChatProvider } from './providers/chatProvider';
+import { ChatParticipantProvider } from './providers/chatParticipantProvider';
 import { CompletionProvider } from './providers/completionProvider';
 import { CodeLensProvider } from './providers/codeLensProvider';
 import { HoverProvider } from './providers/hoverProvider';
@@ -19,10 +20,10 @@ import { Logger } from './utils/logger';
 
 /**
  * Mike AI IDE Extension for VSCode
- * 
+ *
  * Provides comprehensive AI capabilities including:
  * - Darwin Godel Machine (self-learning system)
- * - Apple Context Windows (intelligent context management) 
+ * - Apple Context Windows (intelligent context management)
  * - RAG Pipeline (knowledge base integration)
  * - Multi-model AI integration (Ollama, LM Studio, OpenRouter, etc.)
  * - Agent coordination system
@@ -40,44 +41,45 @@ let ragPipeline: RAGPipeline;
 let agentCoordinator: AgentCoordinator;
 let structuredAgentSystem: StructuredAgentSystem;
 let autoGenIntegration: AutoGenIntegration;
+let chatParticipantProvider: ChatParticipantProvider;
 let claudeFlowIntegration: ClaudeFlowIntegration;
 
 export async function activate(context: vscode.ExtensionContext) {
     extensionContext = context;
     logger = new Logger(context);
-    
+
     try {
         logger.info('🚀 Activating Mike AI IDE extension...');
-        
+
         // Initialize core services
         await initializeServices();
-        
+
         // Register providers
         await registerProviders();
-        
-        // Register commands  
+
+        // Register commands
         await registerCommands();
-        
+
         // Register event handlers
         registerEventHandlers();
-        
+
         // Set extension as enabled
         vscode.commands.executeCommand('setContext', 'mike-ai.enabled', true);
-        
+
         // Show activation notification
         const config = vscode.workspace.getConfiguration('mike-ai');
         if (config.get('showWelcome', true)) {
             showWelcomeMessage();
         }
-        
+
         logger.info('✅ Mike AI IDE extension activated successfully');
-        
+
         // Claude Flow integration
         if (config.get('claudeFlow.enabled', true)) {
             await claudeFlowIntegration.initialize();
             await claudeFlowIntegration.notifyExtensionActivated();
         }
-        
+
     } catch (error) {
         logger.error('❌ Failed to activate Mike AI IDE extension:', error instanceof Error ? error : undefined);
         vscode.window.showErrorMessage(`Mike AI IDE activation failed: ${error instanceof Error ? error.message : String(error)}`);
@@ -86,12 +88,13 @@ export async function activate(context: vscode.ExtensionContext) {
 
 export function deactivate() {
     logger?.info('🔄 Deactivating Mike AI IDE extension...');
-    
+
     return Promise.all([
         darwinGodelMachine?.stop(),
-        appleContextWindow?.cleanup(), 
+        appleContextWindow?.cleanup(),
         ragPipeline?.close(),
         agentCoordinator?.terminateAll(),
+        chatParticipantProvider?.dispose(),
         claudeFlowIntegration?.cleanup()
     ]).then(() => {
         logger?.info('✅ Mike AI IDE extension deactivated');
@@ -102,52 +105,52 @@ export function deactivate() {
 
 async function initializeServices() {
     logger.info('🔧 Initializing AI services...');
-    
+
     // Initialize AI Model Manager (legacy)
     aiModelManager = new AIModelManager(extensionContext, logger);
     await aiModelManager.initialize();
-    
+
     // Initialize Advanced Model Manager (new - supports GGUF, llama.cpp, etc.)
     advancedModelManager = new AdvancedModelManager(extensionContext, logger);
     await advancedModelManager.initialize();
-    
+
     // Initialize Darwin Godel Machine
     darwinGodelMachine = new DarwinGodelMachine(extensionContext, logger);
     await darwinGodelMachine.start();
-    
+
     // Initialize Apple Context Window
     appleContextWindow = new AppleContextWindow(extensionContext, logger);
     await appleContextWindow.initialize();
-    
-    // Initialize RAG Pipeline  
+
+    // Initialize RAG Pipeline
     ragPipeline = new RAGPipeline(extensionContext, logger);
     await ragPipeline.initialize();
-    
+
     // Initialize Agent Coordinator (legacy)
     agentCoordinator = new AgentCoordinator(extensionContext, logger);
     await agentCoordinator.initialize();
-    
+
     // Initialize Structured Agent System (new)
     structuredAgentSystem = new StructuredAgentSystem(extensionContext, logger, advancedModelManager);
-    
+
     // Initialize AutoGen Integration
     autoGenIntegration = new AutoGenIntegration(extensionContext, logger, advancedModelManager, structuredAgentSystem);
-    
+
     // Initialize Claude Flow Integration
     claudeFlowIntegration = new ClaudeFlowIntegration(extensionContext, logger);
-    
+
     // Connect services
     darwinGodelMachine.setAIModelManager(aiModelManager);
     appleContextWindow.setRAGPipeline(ragPipeline);
     agentCoordinator.setAIModelManager(aiModelManager);
     agentCoordinator.setDarwinGodelMachine(darwinGodelMachine);
-    
+
     logger.info('✅ AI services initialized');
 }
 
 async function registerProviders() {
     logger.info('📝 Registering providers...');
-    
+
     // Chat Provider
     const chatProvider = new ChatProvider(
         extensionContext,
@@ -159,7 +162,7 @@ async function registerProviders() {
     extensionContext.subscriptions.push(
         vscode.window.registerTreeDataProvider('mike-ai.chatView', chatProvider)
     );
-    
+
     // Completion Provider
     const completionProvider = new CompletionProvider(
         extensionContext,
@@ -168,23 +171,23 @@ async function registerProviders() {
         appleContextWindow,
         ragPipeline
     );
-    
+
     // Register for all supported languages
     const supportedLanguages = [
         'javascript', 'typescript', 'python', 'java', 'csharp', 'cpp', 'c',
         'go', 'rust', 'php', 'ruby', 'swift', 'kotlin', 'scala', 'html',
         'css', 'json', 'yaml', 'markdown', 'sql', 'shell'
     ];
-    
+
     for (const language of supportedLanguages) {
         extensionContext.subscriptions.push(
             vscode.languages.registerInlineCompletionItemProvider(
-                { language }, 
+                { language },
                 completionProvider
             )
         );
     }
-    
+
     // CodeLens Provider
     const codeLensProvider = new CodeLensProvider(
         extensionContext,
@@ -192,7 +195,7 @@ async function registerProviders() {
         aiModelManager,
         darwinGodelMachine
     );
-    
+
     for (const language of supportedLanguages) {
         extensionContext.subscriptions.push(
             vscode.languages.registerCodeLensProvider(
@@ -201,7 +204,7 @@ async function registerProviders() {
             )
         );
     }
-    
+
     // Hover Provider
     const hoverProvider = new HoverProvider(
         extensionContext,
@@ -209,7 +212,7 @@ async function registerProviders() {
         aiModelManager,
         ragPipeline
     );
-    
+
     for (const language of supportedLanguages) {
         extensionContext.subscriptions.push(
             vscode.languages.registerHoverProvider(
@@ -218,7 +221,7 @@ async function registerProviders() {
             )
         );
     }
-    
+
     // Agents View Provider
     const agentsViewProvider = new AgentsViewProvider(
         extensionContext,
@@ -228,7 +231,7 @@ async function registerProviders() {
     extensionContext.subscriptions.push(
         vscode.window.registerTreeDataProvider('mike-ai.agentsView', agentsViewProvider)
     );
-    
+
     // Context View Provider
     const contextViewProvider = new ContextViewProvider(
         extensionContext,
@@ -238,13 +241,24 @@ async function registerProviders() {
     extensionContext.subscriptions.push(
         vscode.window.registerTreeDataProvider('mike-ai.contextView', contextViewProvider)
     );
-    
+
+    // Chat Participant Provider
+    chatParticipantProvider = new ChatParticipantProvider(
+        extensionContext,
+        logger,
+        aiModelManager,
+        advancedModelManager,
+        appleContextWindow,
+        ragPipeline,
+        darwinGodelMachine
+    );
+
     logger.info('✅ Providers registered');
 }
 
 async function registerCommands() {
     logger.info('⚙️ Registering commands...');
-    
+
     const commandHandler = new CommandHandler(
         extensionContext,
         logger,
@@ -254,7 +268,7 @@ async function registerCommands() {
         ragPipeline,
         agentCoordinator
     );
-    
+
     const commands = [
         vscode.commands.registerCommand('mike-ai.openChat', () => commandHandler.openChat()),
         vscode.commands.registerCommand('mike-ai.spawnAgent', (type?: string) => commandHandler.spawnAgent(type)),
@@ -268,32 +282,32 @@ async function registerCommands() {
         vscode.commands.registerCommand('mike-ai.refactorCode', () => commandHandler.refactorCode()),
         vscode.commands.registerCommand('mike-ai.optimizeCode', () => commandHandler.optimizeCode()),
         vscode.commands.registerCommand('mike-ai.reviewCode', () => commandHandler.reviewCode()),
-        
+
         // Internal commands
         vscode.commands.registerCommand('mike-ai.internal.restartServices', () => commandHandler.restartServices()),
         vscode.commands.registerCommand('mike-ai.internal.showLogs', () => commandHandler.showLogs()),
         vscode.commands.registerCommand('mike-ai.internal.exportData', () => commandHandler.exportData()),
         vscode.commands.registerCommand('mike-ai.internal.importData', () => commandHandler.importData())
     ];
-    
+
     commands.forEach(command => extensionContext.subscriptions.push(command));
-    
+
     logger.info('✅ Commands registered');
 }
 
 function registerEventHandlers() {
     logger.info('📡 Registering event handlers...');
-    
+
     // Document change handlers
     extensionContext.subscriptions.push(
         vscode.workspace.onDidSaveTextDocument(async (document) => {
             const config = vscode.workspace.getConfiguration('mike-ai');
-            
+
             // Auto-index files for RAG
             if (config.get('rag.indexOnSave', true)) {
                 await ragPipeline.indexFile(document.uri.fsPath, document.getText());
             }
-            
+
             // Add to context window
             const contextId = await appleContextWindow.addContextWindow(
                 document.getText(),
@@ -304,7 +318,7 @@ function registerEventHandlers() {
                     timestamp: Date.now()
                 }
             );
-            
+
             // Learn from editing patterns
             if (config.get('darwinGodelMachine.enabled', true)) {
                 await darwinGodelMachine.learn(
@@ -315,14 +329,14 @@ function registerEventHandlers() {
             }
         })
     );
-    
+
     // Selection change handler
     extensionContext.subscriptions.push(
         vscode.window.onDidChangeTextEditorSelection(async (event) => {
             const selection = event.textEditor.selection;
             if (!selection.isEmpty) {
                 const selectedText = event.textEditor.document.getText(selection);
-                
+
                 // Add selection to context window
                 await appleContextWindow.addContextWindow(
                     selectedText,
@@ -338,19 +352,19 @@ function registerEventHandlers() {
             }
         })
     );
-    
+
     // Configuration changes
     extensionContext.subscriptions.push(
         vscode.workspace.onDidChangeConfiguration(async (event) => {
             if (event.affectsConfiguration('mike-ai')) {
                 logger.info('⚙️ Configuration changed, updating services...');
-                
+
                 if (event.affectsConfiguration('mike-ai.primaryModel') ||
                     event.affectsConfiguration('mike-ai.helperModel') ||
                     event.affectsConfiguration('mike-ai.endpoints')) {
                     await aiModelManager.detectModels();
                 }
-                
+
                 if (event.affectsConfiguration('mike-ai.darwinGodelMachine')) {
                     const config = vscode.workspace.getConfiguration('mike-ai');
                     if (config.get('darwinGodelMachine.enabled', true)) {
@@ -362,7 +376,7 @@ function registerEventHandlers() {
             }
         })
     );
-    
+
     // Window state changes
     extensionContext.subscriptions.push(
         vscode.window.onDidChangeWindowState(async (windowState) => {
@@ -375,35 +389,35 @@ function registerEventHandlers() {
             }
         })
     );
-    
+
     // Workspace folder changes
     extensionContext.subscriptions.push(
         vscode.workspace.onDidChangeWorkspaceFolders(async (event) => {
             for (const folder of event.added) {
                 logger.info(`📁 New workspace folder added: ${folder.uri.fsPath}`);
-                
+
                 // Index new workspace
                 await ragPipeline.indexProject(folder.uri.fsPath);
-                
+
                 // Set as current project for context
                 await appleContextWindow.setProject(folder.uri.fsPath);
             }
-            
+
             for (const folder of event.removed) {
                 logger.info(`📁 Workspace folder removed: ${folder.uri.fsPath}`);
                 // Could clean up indexed data here
             }
         })
     );
-    
+
     logger.info('✅ Event handlers registered');
 }
 
 function showWelcomeMessage() {
-    const message = `🎉 Mike AI IDE is now active! 
+    const message = `🎉 Mike AI IDE is now active!
 
 Features available:
-• Darwin Godel Machine (self-learning)  
+• Darwin Godel Machine (self-learning)
 • Apple Context Windows (smart context)
 • RAG Knowledge Base (codebase search)
 • Multi-Model AI (Ollama, LM Studio, APIs)

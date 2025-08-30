@@ -30,8 +30,7 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
-    "commands": [
-      {
+    "commands": [{
         "command": "mike-ai.openChat",
         "title": "Open AI Chat",
         "category": "Mike AI",
@@ -105,8 +104,7 @@
       }
     ],
     "menus": {
-      "commandPalette": [
-        {
+      "commandPalette": [{
           "command": "mike-ai.openChat"
         },
         {
@@ -148,14 +146,11 @@
           "when": "editorLangId"
         }
       ],
-      "editor/context": [
-        {
-          "submenu": "mike-ai.submenu",
-          "group": "ai"
-        }
-      ],
-      "mike-ai.submenu": [
-        {
+      "editor/context": [{
+        "submenu": "mike-ai.submenu",
+        "group": "ai"
+      }],
+      "mike-ai.submenu": [{
           "command": "mike-ai.explainCode",
           "when": "editorHasSelection",
           "group": "understand"
@@ -181,8 +176,7 @@
           "group": "validate"
         }
       ],
-      "view/title": [
-        {
+      "view/title": [{
           "command": "mike-ai.openChat",
           "when": "view == mike-ai.chatView",
           "group": "navigation"
@@ -194,16 +188,13 @@
         }
       ]
     },
-    "submenus": [
-      {
-        "id": "mike-ai.submenu",
-        "label": "Mike AI",
-        "icon": "$(sparkle)"
-      }
-    ],
+    "submenus": [{
+      "id": "mike-ai.submenu",
+      "label": "Mike AI",
+      "icon": "$(sparkle)"
+    }],
     "views": {
-      "explorer": [
-        {
+      "explorer": [{
           "id": "mike-ai.chatView",
           "name": "AI Chat",
           "when": "mike-ai.enabled",
@@ -223,8 +214,7 @@
         }
       ]
     },
-    "viewsWelcome": [
-      {
+    "viewsWelcome": [{
         "view": "mike-ai.chatView",
         "contents": "Welcome to Mike AI Chat!\n[Start Conversation](command:mike-ai.openChat)\n[Configure Models](command:mike-ai.configureModels)"
       },
@@ -388,8 +378,7 @@
         }
       }
     },
-    "keybindings": [
-      {
+    "keybindings": [{
         "command": "mike-ai.openChat",
         "key": "ctrl+shift+c",
         "mac": "cmd+shift+c",
@@ -413,26 +402,56 @@
         "when": "editorHasSelection"
       }
     ],
-    "languages": [
-      {
-        "id": "mike-ai-chat",
-        "aliases": [
-          "Mike AI Chat"
-        ],
-        "extensions": [
-          ".aichat"
-        ]
-      }
-    ],
-    "grammars": [
-      {
-        "language": "mike-ai-chat",
-        "scopeName": "source.mike-ai-chat",
-        "path": "./syntaxes/mike-ai-chat.tmGrammar.json"
-      }
-    ],
-    "colors": [
-      {
+    "chatParticipants": [{
+      "id": "mike-ai.mikeide",
+      "name": "mikeide",
+      "description": "AI-powered coding assistant with local LLM support",
+      "isDefault": false,
+      "commands": [{
+          "name": "explain",
+          "description": "Explain selected code or concepts"
+        },
+        {
+          "name": "refactor",
+          "description": "Refactor and improve code structure"
+        },
+        {
+          "name": "test",
+          "description": "Generate unit tests for code"
+        },
+        {
+          "name": "review",
+          "description": "Perform AI code review"
+        },
+        {
+          "name": "optimize",
+          "description": "Optimize code performance"
+        },
+        {
+          "name": "debug",
+          "description": "Help debug code issues"
+        },
+        {
+          "name": "document",
+          "description": "Generate documentation for code"
+        }
+      ]
+    }],
+    "languages": [{
+      "id": "mike-ai-chat",
+      "aliases": [
+        "Mike AI Chat"
+      ],
+      "extensions": [
+        ".aichat"
+      ]
+    }],
+    "grammars": [{
+      "language": "mike-ai-chat",
+      "scopeName": "source.mike-ai-chat",
+      "path": "./syntaxes/mike-ai-chat.tmGrammar.json"
+    }],
+    "colors": [{
         "id": "mike-ai.chat.userMessage",
         "description": "Color for user messages in AI chat",
         "defaults": {
@@ -498,13 +517,11 @@
   },
   "extensionDependencies": [],
   "extensionPack": [],
-  "badges": [
-    {
-      "url": "https://img.shields.io/badge/AI-Powered-blue",
-      "href": "https://github.com/mike-ai/mike-ai-ide",
-      "description": "AI Powered Development Environment"
-    }
-  ],
+  "badges": [{
+    "url": "https://img.shields.io/badge/AI-Powered-blue",
+    "href": "https://github.com/mike-ai/mike-ai-ide",
+    "description": "AI Powered Development Environment"
+  }],
   "sponsor": {
     "url": "https://github.com/sponsors/mike-ai"
   },

@@ -61,11 +61,11 @@ else {
 	if (Object.keys(product).length === 0) {
 		Object.assign(product, {
 			version: '1.102.0-dev',
-			nameShort: 'Code - OSS Dev',
-			nameLong: 'Code - OSS Dev',
-			applicationName: 'code-oss',
-			dataFolderName: '.vscode-oss',
-			urlProtocol: 'code-oss',
+			nameShort: 'Mike-AI-IDE Dev',
+			nameLong: 'Mike-AI-IDE - AI-Powered Development Environment Dev',
+			applicationName: 'mike-ai-ide',
+			dataFolderName: '.mike-ai-ide',
+			urlProtocol: 'mike-ai-ide',
 			reportIssueUrl: 'https://github.com/microsoft/vscode/issues/new',
 			licenseName: 'MIT',
 			licenseUrl: 'https://github.com/microsoft/vscode/blob/main/LICENSE.txt',

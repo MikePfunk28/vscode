@@ -1,18 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop">
-	<id>@@NAME@@.desktop</id>
-	<metadata_license>@@LICENSE@@</metadata_license>
-	<project_license>@@LICENSE@@</project_license>
-	<name>@@NAME_LONG@@</name>
-	<url type="homepage">https://code.visualstudio.com</url>
-	<summary>Visual Studio Code. Code editing. Redefined.</summary>
+	<id>
+		@@NAME@@.desktop
+	</id>
+	<metadata_license>
+		@@LICENSE@@
+	</metadata_license>
+	<project_license>
+		@@LICENSE@@
+	</project_license>
+	<name>
+		@@NAME_LONG@@
+	</name>
+	<url type="homepage">
+		https://github.com/microsoft/vscode
+	</url>
+	<summary>
+		Mike-AI-IDE. AI-Powered Development Environment.
+	</summary>
 	<description>
-		<p>Visual Studio Code is a new choice of tool that combines the simplicity of a code editor with what developers need for the core edit-build-debug cycle. See https://code.visualstudio.com/docs/setup/linux for installation instructions and FAQ.</p>
+		<p>
+			Mike-AI-IDE is an AI-powered development environment that combines the simplicity of a code editor with intelligent AI assistance for the complete development lifecycle. Built on the proven VS Code foundation with advanced AI capabilities.
+		</p>
 	</description>
 	<screenshots>
 		<screenshot type="default">
-			<image>https://code.visualstudio.com/home/home-screenshot-linux-lg.png</image>
-			<caption>Editing TypeScript and searching for extensions</caption>
+			<image>
+				https://github.com/microsoft/vscode/raw/main/resources/linux/code.png
+			</image>
+			<caption>
+				AI-powered code editing and intelligent assistance
+			</caption>
 		</screenshot>
 	</screenshots>
 </component>
